@@ -52,7 +52,7 @@ public class ConnectionService implements IPluginInConnectionService,
     private SampleDeviceManager deviceManager = null;
 
     /**
-     * Called by thye OSGi dependency manager once all the components
+     * Called by the OSGi dependency manager once all the components
      * dependencies are met
      */
     public void init() {
