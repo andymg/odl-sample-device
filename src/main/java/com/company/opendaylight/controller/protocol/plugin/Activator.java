@@ -31,19 +31,31 @@
  */
 package com.company.opendaylight.controller.protocol.plugin;
 
+import java.util.Dictionary;
+import java.util.Hashtable;
+
 import org.apache.felix.dm.Component;
+import org.opendaylight.controller.sal.connection.IPluginInConnectionService;
 import org.opendaylight.controller.sal.core.ComponentActivatorAbstractBase;
 import org.opendaylight.controller.sal.core.Node;
 import org.opendaylight.controller.sal.core.NodeConnector.NodeConnectorIDType;
+import org.opendaylight.controller.sal.inventory.IPluginInInventoryService;
+import org.opendaylight.controller.sal.utils.GlobalConstants;
+import org.opendaylight.controller.sal.utils.INodeConnectorFactory;
+import org.opendaylight.controller.sal.utils.INodeFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class Activator extends ComponentActivatorAbstractBase {
-    protected static final Logger logger = LoggerFactory
+    protected static final Logger log = LoggerFactory
             .getLogger(Activator.class);
 
     public static final String NODE_TYPE = "SPL";
     public static final String NODE_CONNECTOR_TYPE = "SPL";
+
+    private boolean nodeTypeRegistered = false;
+
+    private boolean nodeConnectorTypeRegistered = false;
 
     /*
      * (non-Javadoc)
@@ -55,9 +67,10 @@ public class Activator extends ComponentActivatorAbstractBase {
     @Override
     protected void init() {
         super.init();
-        Node.NodeIDType.registerIDType(NODE_TYPE, String.class);
-        NodeConnectorIDType.registerIDType(NODE_CONNECTOR_TYPE, String.class,
-                NODE_TYPE);
+        nodeTypeRegistered = Node.NodeIDType.registerIDType(NODE_TYPE,
+                String.class);
+        nodeConnectorTypeRegistered = NodeConnectorIDType.registerIDType(
+                NODE_CONNECTOR_TYPE, String.class, NODE_TYPE);
     }
 
     /*
@@ -69,8 +82,13 @@ public class Activator extends ComponentActivatorAbstractBase {
      */
     @Override
     public void destroy() {
-        Node.NodeIDType.unRegisterIDType(NODE_TYPE);
-        NodeConnectorIDType.unRegisterIDType(NODE_CONNECTOR_TYPE);
+        if (nodeTypeRegistered) {
+            Node.NodeIDType.unRegisterIDType(NODE_TYPE);
+        }
+
+        if (nodeConnectorTypeRegistered) {
+            NodeConnectorIDType.unRegisterIDType(NODE_CONNECTOR_TYPE);
+        }
         super.destroy();
     }
 
@@ -82,7 +100,8 @@ public class Activator extends ComponentActivatorAbstractBase {
      */
     @Override
     protected Object[] getGlobalImplementations() {
-        Object[] resources = {};
+        Object[] resources = { NodeFactory.class, NodeConnectorFactory.class,
+                InventoryService.class, ConnectionService.class };
         return resources;
     }
 
@@ -94,7 +113,31 @@ public class Activator extends ComponentActivatorAbstractBase {
      */
     @Override
     protected void configureGlobalInstance(Component c, Object imp) {
-        super.configureGlobalInstance(c, imp);
+        log.debug("GLOBAL CONFIG: {}", imp.toString());
+        if (imp.equals(ConnectionService.class)) {
+            Dictionary<String, Object> properties = new Hashtable<String, Object>();
+            properties.put(GlobalConstants.PROTOCOLPLUGINTYPE.toString(),
+                    Activator.NODE_TYPE);
+            c.setInterface(IPluginInConnectionService.class.getName(),
+                    properties);
+        } else if (imp.equals(InventoryService.class)) {
+            Dictionary<String, Object> properties = new Hashtable<String, Object>();
+            properties.put(GlobalConstants.PROTOCOLPLUGINTYPE.toString(),
+                    Activator.NODE_TYPE);
+            c.setInterface(IPluginInInventoryService.class.getName(),
+                    properties);
+        } else if (imp.equals(NodeFactory.class)) {
+            Dictionary<String, Object> properties = new Hashtable<String, Object>();
+            properties.put(GlobalConstants.PROTOCOLPLUGINTYPE.toString(),
+                    Activator.NODE_TYPE);
+            properties.put("protocolName", Activator.NODE_TYPE);
+            c.setInterface(INodeFactory.class.getName(), properties);
+        } else if (imp.equals(NodeConnectorFactory.class)) {
+            Dictionary<String, Object> properties = new Hashtable<String, Object>();
+            properties.put(GlobalConstants.PROTOCOLPLUGINTYPE.toString(),
+                    Activator.NODE_TYPE);
+            properties.put("protocolName", Activator.NODE_CONNECTOR_TYPE);
+            c.setInterface(INodeConnectorFactory.class.getName(), properties);
+        }
     }
-
 }

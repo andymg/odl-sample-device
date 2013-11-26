@@ -35,7 +35,6 @@ import org.opendaylight.controller.sal.core.ConstructionException;
 import org.opendaylight.controller.sal.core.Node;
 import org.opendaylight.controller.sal.core.NodeConnector;
 import org.opendaylight.controller.sal.utils.INodeConnectorFactory;
-import org.opendaylight.controller.sal.utils.INodeFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,9 +42,9 @@ import org.slf4j.LoggerFactory;
  * @author David Bainbridge <davidk.bainbridge@gmail.com>
  * 
  */
-public class NodeConnectionFactory implements INodeConnectorFactory {
+public class NodeConnectorFactory implements INodeConnectorFactory {
     protected static final Logger log = LoggerFactory
-            .getLogger(NodeConnectionFactory.class);
+            .getLogger(NodeConnectorFactory.class);
 
     /*
      * (non-Javadoc)
